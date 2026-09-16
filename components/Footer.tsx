@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="border-t border-forest/10 bg-forest-deep text-cream">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-3 lg:px-8">
         <div>
-          <Logo light />
+          <Logo variant="seal" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-cream/75">
             Más que destinos, son experiencias. Turismo de aventura, naturaleza y cultura, con salida desde El Salvador.
           </p>

@@ -14,7 +14,7 @@ export default function ContactoPage() {
         <p className="text-xs uppercase tracking-[0.25em] text-moss">Reservas</p>
         <h1 className="mt-3 font-display text-5xl text-forest">Hablemos de tu próximo viaje</h1>
         <p className="mt-5 leading-relaxed text-bark">
-          Atención personalizada para conocer destinos, consultar precios, resolver dudas y elegir el paquete que mejor se adapte a ti. Después de cada viaje hacemos seguimiento para que quieras volver.
+          Atención personalizada para conocer destinos, consultar precios, resolver dudas y elegir el paquete que mejor se adapte a ti. Cuando envías el formulario, la reserva llega a {email}.
         </p>
         <div className="mt-8 space-y-4 text-sm text-bark">
           <p>

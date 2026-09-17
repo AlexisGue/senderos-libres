@@ -1,51 +1,68 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { destinations, email, instagram } from "@/lib/data";
+import { FormEvent, useState } from "react";
+import { destinations } from "@/lib/data";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [people, setPeople] = useState("2");
   const [destination, setDestination] = useState(destinations[0].name);
+  const [date, setDate] = useState("");
   const [message, setMessage] = useState("");
+  const [company, setCompany] = useState("");
 
-  const mailHref = useMemo(() => {
-    const subject = encodeURIComponent(`Reserva: ${destination}`);
-    const body = encodeURIComponent(
-      `Hola Senderos Libres,\n\nQuiero reservar ${destination}.\nNombre: ${name}\nTeléfono: ${phone}\nPersonas: ${people}\n\n${message}`,
-    );
-    return `mailto:${email}?subject=${subject}&body=${body}`;
-  }, [destination, message, name, people, phone]);
-
-  function onSubmit(event: FormEvent) {
+  async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    window.location.href = mailHref;
-    setSent(true);
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/reserva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          phone,
+          destination,
+          people,
+          date,
+          message,
+          company,
+        }),
+      });
+      const data = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo enviar la reserva.");
+      }
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo enviar la reserva.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (sent) {
     return (
       <div className="rounded-3xl border border-sage/40 bg-white/70 p-8 text-center">
-        <p className="font-display text-3xl text-forest">Tu próxima aventura ya empezó</p>
+        <p className="font-display text-3xl text-forest">Reserva enviada</p>
         <p className="mt-3 text-bark">
-          Abre el correo para enviarnos la reserva o escríbenos por Instagram.
+          Ya nos llegó tu solicitud. Te escribimos pronto para confirmar el viaje.
         </p>
-        <a
-          href={instagram}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-6 inline-flex rounded-full bg-forest px-6 py-3 text-cream"
-        >
-          Escribir por Instagram
-        </a>
       </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
+      <label className="sr-only" aria-hidden="true">
+        Empresa
+        <input tabIndex={-1} autoComplete="off" value={company} onChange={(e) => setCompany(e.target.value)} />
+      </label>
       <label className="grid gap-1 text-sm">
         Nombre
         <input
@@ -82,6 +99,8 @@ export function ContactForm() {
           <input
             type="number"
             min={1}
+            max={50}
+            required
             value={people}
             onChange={(e) => setPeople(e.target.value)}
             className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
@@ -89,20 +108,32 @@ export function ContactForm() {
         </label>
       </div>
       <label className="grid gap-1 text-sm">
+        Fecha del viaje
+        <input
+          type="date"
+          required
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
+        />
+      </label>
+      <label className="grid gap-1 text-sm">
         Mensaje
         <textarea
           rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Fecha tentativa, si viajan en grupo, dudas..."
+          placeholder="Dudas, punto de encuentro u otros detalles..."
           className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
         />
       </label>
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
       <button
         type="submit"
-        className="mt-2 rounded-full bg-forest px-6 py-3 text-cream transition hover:bg-pine"
+        disabled={loading}
+        className="mt-2 rounded-full bg-forest px-6 py-3 text-cream transition hover:bg-pine disabled:opacity-60"
       >
-        Enviar solicitud
+        {loading ? "Enviando..." : "Enviar reserva"}
       </button>
     </form>
   );

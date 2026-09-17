@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ContactForm } from "@/components/ContactForm";
 import { email, instagram, instagramHandle } from "@/lib/data";
 
@@ -33,7 +34,9 @@ export default function ContactoPage() {
         </div>
       </div>
       <div className="rounded-[2rem] border border-forest/10 bg-white/80 p-6 md:p-8">
-        <ContactForm />
+        <Suspense>
+          <ContactForm />
+        </Suspense>
       </div>
     </main>
   );

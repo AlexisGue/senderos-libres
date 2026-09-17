@@ -1,74 +1,42 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { destinations } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { destinations, email } from "@/lib/data";
 
 export function ContactForm() {
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [people, setPeople] = useState("2");
+  const params = useSearchParams();
+  const [nextUrl, setNextUrl] = useState("https://senderos-libres.vercel.app/contacto?enviado=1");
   const [destination, setDestination] = useState(destinations[0].name);
-  const [date, setDate] = useState("");
-  const [message, setMessage] = useState("");
-  const [company, setCompany] = useState("");
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
+  useEffect(() => {
+    setNextUrl(`${window.location.origin}/contacto?enviado=1`);
+  }, []);
 
-    try {
-      const response = await fetch("/api/reserva", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          phone,
-          destination,
-          people,
-          date,
-          message,
-          company,
-        }),
-      });
-      const data = (await response.json()) as { ok?: boolean; error?: string };
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || "No se pudo enviar la reserva.");
-      }
-      setSent(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo enviar la reserva.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (sent) {
+  if (params.get("enviado") === "1") {
     return (
       <div className="rounded-3xl border border-sage/40 bg-white/70 p-8 text-center">
         <p className="font-display text-3xl text-forest">Reserva enviada</p>
         <p className="mt-3 text-bark">
-          Ya nos llegó tu solicitud. Te escribimos pronto para confirmar el viaje.
+          Ya nos llegó tu solicitud a {email}. Te escribimos pronto para confirmar el viaje.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      <label className="sr-only" aria-hidden="true">
-        Empresa
-        <input tabIndex={-1} autoComplete="off" value={company} onChange={(e) => setCompany(e.target.value)} />
-      </label>
+    <form action={`https://formsubmit.co/${email}`} method="POST" className="grid gap-4">
+      <input type="hidden" name="_subject" value={`Nueva reserva: ${destination}`} />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_next" value={nextUrl} />
+      <input type="text" name="_honey" className="hidden" tabIndex={-1} autoComplete="off" />
+
       <label className="grid gap-1 text-sm">
         Nombre
         <input
           required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          name="Nombre"
           className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
         />
       </label>
@@ -76,8 +44,7 @@ export function ContactForm() {
         Teléfono o WhatsApp
         <input
           required
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          name="Telefono"
           className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
         />
       </label>
@@ -85,6 +52,8 @@ export function ContactForm() {
         <label className="grid gap-1 text-sm">
           Destino
           <select
+            required
+            name="Destino"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
             className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
@@ -98,11 +67,11 @@ export function ContactForm() {
           Personas
           <input
             type="number"
+            name="Personas"
             min={1}
             max={50}
             required
-            value={people}
-            onChange={(e) => setPeople(e.target.value)}
+            defaultValue={2}
             className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
           />
         </label>
@@ -111,29 +80,22 @@ export function ContactForm() {
         Fecha del viaje
         <input
           type="date"
+          name="Fecha"
           required
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
           className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
         />
       </label>
       <label className="grid gap-1 text-sm">
         Mensaje
         <textarea
+          name="Mensaje"
           rows={4}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
           placeholder="Dudas, punto de encuentro u otros detalles..."
           className="rounded-2xl border border-forest/15 bg-white px-4 py-3 outline-none ring-gold/40 focus:ring-2"
         />
       </label>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={loading}
-        className="mt-2 rounded-full bg-forest px-6 py-3 text-cream transition hover:bg-pine disabled:opacity-60"
-      >
-        {loading ? "Enviando..." : "Enviar reserva"}
+      <button type="submit" className="mt-2 rounded-full bg-forest px-6 py-3 text-cream transition hover:bg-pine">
+        Enviar reserva
       </button>
     </form>
   );

@@ -24,7 +24,7 @@ export type Destination = {
 
 export const instagram = "https://www.instagram.com/senderos_libres.sv";
 export const instagramHandle = "@senderos_libres.sv";
-export const email = "hola@senderoslibres.sv";
+export const email = "senderoslibres.sv@gmail.com";
 
 export const team = [
   "Rosa Polanco",
